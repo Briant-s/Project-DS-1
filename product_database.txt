@@ -1,0 +1,50 @@
+Tomato#2.50  
+Cucumber#1.75  
+Chicken#8.99  
+Beef#12.50  
+Pork#9.25  
+Salmon#14.99  
+Milk#3.49  
+Eggs#4.25  
+Cheese#5.99  
+Butter#3.99  
+Yogurt#2.99  
+Apple#1.50  
+Banana#0.99  
+Orange#1.25  
+Grapes#3.75  
+Strawberries#4.99  
+Blueberries#5.50  
+Lettuce#1.99  
+Carrot#1.49  
+Broccoli#2.25  
+Onion#1.79  
+Garlic#0.99  
+Potato#2.00  
+Rice#6.49  
+Pasta#3.25  
+Bread#2.99  
+Flour#4.75  
+Sugar#3.50  
+Salt#1.25  
+Pepper#2.99  
+Olive Oil#7.99  
+Vegetable Oil#5.99  
+Coffee#9.49  
+Tea#4.99  
+Honey#6.25  
+Jam#3.99  
+Peanut Butter#4.50  
+Almonds#7.25  
+Cashews#8.50  
+Walnuts#9.99  
+Chocolate#3.75  
+Ice Cream#5.99  
+Cereal#4.99  
+Soda#2.25  
+Juice#3.75  
+Water#1.50  
+Chips#2.99  
+Cookies#3.25  
+Frozen Pizza#7.99  
+Shrimp#13.99  
