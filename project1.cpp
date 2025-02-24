@@ -80,6 +80,7 @@ void add_searcHistory(char query[])
 {
     shistory* newSearch = (shistory*)malloc(sizeof(shistory));
     newSearch->next = NULL;
+    newSearch->prev = NULL;
     strcpy(newSearch->query, query);
 
     if (shead == NULL)
@@ -100,6 +101,7 @@ void add_searcHistory(char query[])
 struct bhistory{
     char name[26];
     double price;
+    int qty;
     struct bhistory* next;
     struct bhistory* prev;
 };
@@ -107,12 +109,14 @@ struct bhistory{
 bhistory* bhead = NULL;
 bhistory* btail = NULL;
 
-void add_buyHistory(char name[], double price)
+void add_buyHistory(char name[], double price, int qty)
 {
     bhistory* newBuy = (bhistory*)malloc(sizeof(bhistory));
     newBuy->next = NULL;
+    newBuy->prev = NULL;
     strcpy(newBuy->name, name);
     newBuy->price = price;
+    newBuy->qty = qty;
 
     if (bhead == NULL)
     {
@@ -136,7 +140,7 @@ void show_SearchHistory()
         printf("Search History Empty!\n");
         return;
     }
-    printf("Search History\n");
+    printf("Search History%22s\n", "Product Name");
     for (int i = 0; i < 5 && curr != NULL; i++)
     {
             printf("%5d %25s\n", i+1, curr->query);
@@ -153,11 +157,15 @@ void show_BuyHistory()
         printf("Buy History Empty!\n");
         return;
     }
-    printf("Buy History\n");
-    for (int i = 0; i < 5 && curr != NULL; i++)
-    {   
-            printf("%5d %25s %10.2lf\n", i+1, curr->name, curr->price);
+    else 
+    {
+        printf("Buy History%22s %10s %10s\n", "Product Name", "Price", "Qty");
+        for (int i = 0; i < 5 && curr != NULL; i++)
+        {   
+            printf("%5d %25s %10.2lf %10d\n", i+1, curr->name, curr->price, curr->qty);
             curr = curr->prev;
+        }
+            
     }    
 }
 
@@ -201,59 +209,73 @@ void print_Product()
 }
 
 
+// user logging
+
+void user_Log(LogType type, const char *product_Name, double product_Price, int qty) // logging for  buy
+{
+    FILE *logFile = fopen("userlogbook.txt", "r");
+    FILE *tempFile = fopen("templogbook.txt", "w");
+
+    if (!tempFile)
+    {
+        printf("Error Opening Temp File!\n");
+        return;
+    }
+
+    // get current time
+    time_t t = time(NULL);
+    struct tm* ptr = localtime(&t);
+    char curr_time[30];
+    strftime(curr_time, sizeof(curr_time), "%Y-%m-%d %H:%M:%S", ptr);
+
+
+    // getting the log type and printing the log to temp file first
+    char logtype[30];
+    switch (type)
+    {
+        case LogType::USER_BUY: 
+            strcpy(logtype, "BUY");
+            fprintf(tempFile, "%s - %s - %s - %.2lf - %d\n", curr_time, logtype, product_Name, product_Price, qty); break;
+        case LogType::USER_SEARCH:
+            strcpy(logtype, "SEARCH");
+            fprintf(tempFile, "%s - %s - %s\n", curr_time, logtype, product_Name); break;
+        case LogType::USER_VIEW_BUY_HISTORY: 
+            strcpy(logtype, "VIEW_BUY_HISTORY");
+            fprintf(tempFile, "%s - %s\n", curr_time, logtype); break;
+        case LogType::USER_VIEW_TRANSACTIONS: 
+            strcpy(logtype, "VIEW_TRANSACTIONS"); 
+            fprintf(tempFile, "%s - %s\n", curr_time, logtype); break;
+        case LogType::USER_VIEW_SEARCH_HISTORY: 
+            strcpy(logtype, "VIEW_SEARCH_HISTORY");
+            fprintf(tempFile, "%s - %s\n", curr_time, logtype); break;
+        default: strcpy(logtype, "ERROR!"); break;
+    }
+
+    
+
+    // copying old log entry to the temp file
+    if (logFile)
+    {
+        char buffer[1024];
+        while(fgets(buffer, sizeof(buffer), logFile))
+        {
+            fputs(buffer, tempFile);
+        }
+        fclose(logFile);
+    }
+
+    fclose(tempFile);
+    
+    // updating new file
+    remove("userlogbook.txt");
+    rename("templogbook.txt", "userlogbook.txt");
+
+}
+
+
+
+
 // user functions
-
-void user_Log_SB(LogType type, char product_Name[], double product_Price) // logging for search and buy
-{
-    FILE *logFile = fopen("userlogbook.txt", "a");
-    // get current time
-    time_t t = time(NULL);
-    struct tm* ptr = localtime(&t);
-    char curr_time[30];
-    strftime(curr_time, sizeof(curr_time), "%Y-%m-%d %H:%M:%S", ptr);
-
-
-    // getting the log type
-    char logtype[30];
-    switch (type)
-    {
-        case LogType::USER_BUY: strcpy(logtype, "BUY"); break;
-        case LogType::USER_SEARCH: strcpy(logtype, "SEARCH"); break;
-        default: strcpy(logtype, "ERROR!"); break;
-    }
-
-
-    // printing log
-    fprintf(logFile, "%s - user_%s - %s - %.2lf\n", curr_time, logtype, product_Name, product_Price);
-    fclose(logFile);
-}
-
-void user_Log_VH(LogType type) // logging for viewing histories
-{
-    FILE *logFile = fopen("userlogbook.txt", "a");
-    // get current time
-    time_t t = time(NULL);
-    struct tm* ptr = localtime(&t);
-    char curr_time[30];
-    strftime(curr_time, sizeof(curr_time), "%Y-%m-%d %H:%M:%S", ptr);
-
-
-    // getting the log type
-    char logtype[30];
-    switch (type)
-    {
-        case LogType::USER_VIEW_BUY_HISTORY: strcpy(logtype, "VIEW_BUY_HISTORY"); break;
-        case LogType::USER_VIEW_TRANSACTIONS: strcpy(logtype, "VIEW_TRANSACTIONS"); break;
-        case LogType::USER_VIEW_SEARCH_HISTORY: strcpy(logtype, "VIEW_SEARCH_HISTORY"); break;
-        default: strcpy(logtype, "ERROR!"); break;
-    }
-
-
-    // printing log
-    fprintf(logFile, "%s - user_%s\n", curr_time, logtype);
-    fclose(logFile);
-}
-
 int is_BalanceEnough(double product_Price)
 {
     if (user_Money_global < product_Price)
@@ -270,6 +292,7 @@ int is_BalanceEnough(double product_Price)
 void ask_buyProduct(char product_Name[], double product_Price)
 {
     int user_Select = -1;
+    int product_Qty = 1;
     printf("=============\n");
     printf("1. Buy\n");
     printf("2. Cancel\n");
@@ -279,33 +302,43 @@ void ask_buyProduct(char product_Name[], double product_Price)
         printf(">> ");
         scanf("%d", &user_Select);
     } while(user_Select < 1 || user_Select > 2);
-    switch (user_Select) 
+    switch (user_Select)
     {
-        case 1: // if buy
-            // checking balance
-            if (is_BalanceEnough(product_Price) == 1)
-            {
-                add_buyHistory(product_Name, product_Price);
-                user_Log_SB(LogType::USER_BUY, product_Name, product_Price);
-                user_Money_global -= product_Price; // deducting user balance
-                user_Spent_global += product_Price; // adding user spent
-            }
-            else // if not enough money
-            {
-                printf("Balance not enough\n");
-                printf("Current balance = %.2lf\n", user_Money_global);
-                printf("Press any key to continue..."); getchar(); getchar();
-                return;
-            } 
-            // if enough
-            printf("Product successfully purchased!\n");
-            printf("Updated balance = %.2lf\n", user_Money_global);
+        case 1:
+        {
+        // get product quantity
+        printf("=============\n");
+        do {
+            printf("Input Quantity >> ");
+            scanf("%d", &product_Qty);
+        }while (product_Qty < 1);
+        // checking balance
+        if (is_BalanceEnough(product_Price * product_Qty) == 1)
+        {
+            add_buyHistory(product_Name, product_Price, product_Qty);
+            user_Log(LogType::USER_BUY, product_Name, product_Price * product_Qty, product_Qty);
+            user_Money_global -= product_Price * product_Qty; // deducting user balance
+            user_Spent_global += product_Price * product_Qty; // adding user spent
+        }
+        else // if not enough money
+        {
+            printf("Balance not enough\n");
+            printf("Current balance = %.2lf\n", user_Money_global);
             printf("Press any key to continue..."); getchar(); getchar();
-            break;
+            return;
+        } 
+        // if enough
+        printf("Final Price (%.2lf x %d) = %.2lf\n", product_Price, product_Qty, product_Price * product_Qty); // show final price
+        printf("Product successfully purchased!\n");
+        printf("Updated balance = %.2lf\n", user_Money_global);
+        printf("Press any key to continue..."); getchar(); getchar();
+        break;
+        }
         case 2:
             break;
-    }
-} 
+    }        
+}
+
 
 void search_Product(char query[])
 {
@@ -318,7 +351,7 @@ void search_Product(char query[])
             printf("Product Found!\n");
             printf("Product Name: %s | Product Price: $%-10.2lf\n", curr->name, curr->price);
             add_searcHistory(query);
-            user_Log_SB(LogType::USER_SEARCH, curr->name, curr->price);
+            user_Log(LogType::USER_SEARCH, curr->name, curr->price, 0);
             ask_buyProduct(curr->name, curr->price);
             return;
         }
@@ -358,7 +391,7 @@ void searchHistory_Menu()
     printf("============================================================================\n");
     printf("                          User Search History\n");
     printf("============================================================================\n");
-    user_Log_VH(LogType::USER_VIEW_SEARCH_HISTORY);
+    user_Log(LogType::USER_VIEW_SEARCH_HISTORY, "", 0.00, 0);
     show_SearchHistory();
     printf("============================================================================\n");
     printf("Press any key to continue..."); getchar();
@@ -370,7 +403,7 @@ void buyHistory_Menu()
     printf("============================================================================\n");
     printf("                          User Buy History\n");
     printf("============================================================================\n");
-    user_Log_VH(LogType::USER_VIEW_BUY_HISTORY);
+    user_Log(LogType::USER_VIEW_BUY_HISTORY, "", 0.00, 0);
     show_BuyHistory();
     printf("============================================================================\n");
     printf("Press any key to continue..."); getchar();
@@ -379,7 +412,7 @@ void buyHistory_Menu()
 void totalSpent_Menu()
 {
     system("cls");
-    user_Log_VH(LogType::USER_VIEW_TRANSACTIONS);
+    user_Log(LogType::USER_VIEW_TRANSACTIONS, "", 0.00, 0);
     printf("====================================\n\n");
     printf("Total User Spending = %10.2lf\n\n", user_Spent_global);
     printf("====================================\n");
