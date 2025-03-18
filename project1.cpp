@@ -459,22 +459,29 @@ void mainMenu_Page()
                 printf("Created by Briant Sandriano | 2802453471\n");
                 printf("Press any key to exit..."); getchar();
                 return;
+            default:
+            	printf("Make sure input is correct!\n");
+				menuSelect = -1;
+				printf("Press any key to try again..."); getchar();
+            	break;
         }
     }    
 }
 
 void ask_startingMoney_Page()
 {
-    printf("Please input starting money: ");
-    scanf("%lf", &user_Money_global);
+    double temp = 0;
+    do
+    {
+	    printf("Please input starting money : ");
+	    scanf("%lf", &temp);
+	} while (temp < 0);
+	user_Money_global = temp;
 }
 
 int main(void)
 {
     read_Product();
-    //print_list();
     ask_startingMoney_Page();
     mainMenu_Page();
-    //print_Product();
-    //searchProduct_menu(); getchar();
 }
